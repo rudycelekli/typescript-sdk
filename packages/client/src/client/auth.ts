@@ -836,6 +836,10 @@ export function applyClientAuthentication(
     }
 }
 
+function encodeBasicAuthCredential(value: string): string {
+    return new URLSearchParams({ value }).toString().slice('value='.length);
+}
+
 /**
  * Applies HTTP Basic authentication (RFC 6749 Section 2.3.1)
  */
@@ -844,7 +848,9 @@ export function applyBasicAuth(clientId: string, clientSecret: string | undefine
         throw new Error('client_secret_basic authentication requires a client_secret');
     }
 
-    const credentials = btoa(`${clientId}:${clientSecret}`);
+    // RFC 6749 §2.3.1 requires each credential to be form-encoded before
+    // joining them with the Basic authentication colon separator.
+    const credentials = btoa(`${encodeBasicAuthCredential(clientId)}:${encodeBasicAuthCredential(clientSecret)}`);
     headers.set('Authorization', `Basic ${credentials}`);
 }
 
